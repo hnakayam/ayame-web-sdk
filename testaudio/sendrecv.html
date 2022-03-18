@@ -1,9 +1,12 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8">
-        <title>Ayame Send/Recv Test</title>
+        <title>Ayame Send/Recv Audio Test</title>
     </head>
     <body>
+      <header class="sticky row">
+        <h4>Ayame Send/Recv Audio Test</h4>
+      </header>
       <div>
         <p>ルームID
         <input id="roomIdInput" disabled type="text" value=""></input>
@@ -21,37 +24,65 @@
         </select>
       </div>
       <div style="float:left;">
-        <video id="local-video" muted autoplay="" style="width: 400px; height: 300px; border: 1px solid black;"></video>
+        <div class="label">Local audio:</div>
+        <audio id="local-audio" autoplay controls muted></audio>
+        <!-- <audio id="local-audio" autoplay controls></audio> -->
+        <p>モニター音声を確認するには、ミュートを解除してください</p>
       </div>
       <div style="float:left; margin-left: 20px;">
-        <video id="remote-video" autoplay style="width: 400px; height: 300px; border: 1px solid black;"></video>
+        <div class="label">Remote audio:</div>
+        <audio id="remote-audio" autoplay controls></audio>
       </div>
       <script src="../dist/ayame.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
       <script src="./main.js"></script>
       <script type="text/javascript">
-        const remoteVideo = document.querySelector('#remote-video');
-        let conn = null;
         const options = Ayame.defaultOptions;
-        options.video.codec = videoCodec;
+        options.clientId = clientId ? clientId : options.clientId;
+        //options.video.codec = videoCodec;
+        //options.video.direction = 'sendrecv';        
+        options.audio.direction = 'sendrecv';
         if (signalingKey) {
           options.signalingKey = signalingKey;
         }
-        conn = Ayame.connection(signalingUrl, roomId, options, true);
-        conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
-        conn.on('disconnect', (e) => console.log(e));
+        let mediaStream;  // for local audio device
+        const conn = Ayame.connection(signalingUrl, roomId, options, true);
+        conn.on('open', ({authzMetadata}) => {
+          console.log('<open> ');
+          console.log(authzMetadata);
+        });
+        conn.on('disconnect', (e) => {
+          console.log('<disconnected from peer>');
+          console.log(e);
+        });
         conn.on('addstream', async (e) => {
+          // remote stream connected
           console.log(e.stream);
-          remoteVideo.srcObject = e.stream;
+          document.querySelector('#remote-audio').srcObject = e.stream;
         });
         const startConn = async () => {
-          const mediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
+          // wait for peer connection
           const authnMetadata = {hoge: "fuga"};
-          await conn.connect(mediaStream, {authnMetadata});
-          document.querySelector('#local-video').srcObject = mediaStream;
+          await conn.connect(mediaStream,  {authnMetadata});
+          // at this point, we are connected
+          //document.querySelector('#local-audio').srcObject = mediaStream;
+          console.log('<connected>');
         };
+        const gotStream = function(stream) {
+          mediaStream = stream;
+          // start monitor local audio before actual connection
+          // unmute and use headset to prevent howling audio response
+          document.querySelector('#local-audio').srcObject = mediaStream;
+        }
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
+
+        // this will wait for local media ready (including user agreement with using MIC device)
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+          .then(gotStream)
+          .catch(e => {
+            alert(`getUserMedia() error: ${e.name}`);
+        });
       </script>
   </body>
 </html>
