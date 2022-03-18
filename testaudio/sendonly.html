@@ -34,7 +34,7 @@
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
         conn.on('disconnect', (e) => console.log(e));
         const startConn = async () => {
-          const mediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+          const mediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
 
           // setup monitor audio, unmute audio controll to hear monitoring sound
           document.querySelector('#local-audio').srcObject = mediaStream;
