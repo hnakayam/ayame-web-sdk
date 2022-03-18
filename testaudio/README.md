@@ -18,11 +18,11 @@ static -c 0 .
 
 3. WebRTC対応のブラウザで以下のいずれかのURLを開きます。
 
-http://Localhost:8080/testaudio/sendonly.html
+http://localhost:8080/testaudio/sendonly.html
 
-http://Localhost:8080/testaudio/recvonly.html
+http://localhost:8080/testaudio/recvonly.html
 
-http://Localhost:8080/testaudio/sendrecv.html
+http://localhost:8080/testaudio/sendrecv.html
 
 ## 動作説明
 
