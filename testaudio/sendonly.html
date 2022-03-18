@@ -1,11 +1,11 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8">
-        <title>Ayame RecvOnly Sample</title>
+        <title>Ayame SendOnly Audio Sample</title>
     </head>
     <body>
       <header class="sticky row">
-        <h4>Ayame RecvOnly Sample</h4>
+          <h4>Ayame SendOnly Audio Sample</h4>
       </header>
       <div>
         <p>ルームID
@@ -17,8 +17,8 @@
         <button onclick="startConn();">接続</button>
         <button onclick="conn.disconnect();">切断</button>
       </div>
-      <div style="float:right;">
-        <video id="remote-video" autoplay controls style="width: 400px; height: 300px; border: 1px solid black;"></video>
+      <div style="float:left;">
+        <audio id="local-audio" autoplay controls muted></audio>
       </div>
       <script src="../dist/ayame.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
@@ -26,19 +26,21 @@
       <script type="text/javascript">
         const options = Ayame.defaultOptions;
         options.clientId = clientId ? clientId : options.clientId;
-        options.video.direction = 'recvonly';
-        options.audio.direction = 'recvonly';
+        //options.video.direction = 'sendonly';
+        options.audio.direction = 'sendonly';
         if (signalingKey) {
           options.signalingKey = signalingKey;
         }
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
-        conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
         conn.on('disconnect', (e) => console.log(e));
-        conn.on('addstream', (e) => {
-          document.querySelector('#remote-video').srcObject = e.stream;
-        });
         const startConn = async () => {
-          await conn.connect(null);
+          const mediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+
+          // setup monitor audio, unmute audio controll to hear monitoring sound
+          document.querySelector('#local-audio').srcObject = mediaStream;
+          
+          // wait for peer connection
+          await conn.connect(mediaStream);
         };
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
