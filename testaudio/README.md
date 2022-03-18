@@ -57,7 +57,7 @@ http://localhost:8080/testaudio/sendrecv.html
 
 双方向の通話テストを行います。
 
-[](testaudio_sendrecv.png)
+![sendrecv.html](testaudio_sendrecv.png)
 
 左側のオーディオコントロールでローカル側音声のコントロールを行います。右側のオーディオコントロールでリモート側音声のボリュームやミュートなどのコントロールを行います。
 
