@@ -26,7 +26,7 @@ http://Localhost:8080/testaudio/sendrecv.html
 
 ## 動作説明
 
-# sendonly.html
+### sendonly.html
 
 ページを開くとマイクの使用がリクエストされ、その後音声入力が始まります。
 このときオーディオコントロールのミュート解除を行うと、マイク音声のモニタが可能です (ハウリング音が発生する場合はヘッドセット等を利用してください)
@@ -35,7 +35,7 @@ http://Localhost:8080/testaudio/sendrecv.html
 
 「切断」ボタンを押すか、相手が切断した場合にはWebRTC通話が終了します。再度WebRTC通話を行うには「接続」ボタンを押してください。
 
-# recvonly.html
+### recvonly.html
 
 このテストではマイクは使用しません。
 
@@ -43,7 +43,7 @@ http://Localhost:8080/testaudio/sendrecv.html
 
 「切断」ボタンを押すか、相手が切断した場合にはWebRTC通話が終了します。再度WebRTC通話を行うには「接続」ボタンを押してください。
 
-# sendrecv.html
+### sendrecv.html
 
 
 # Ayame シグナリングサーバー、Room IDの変更
