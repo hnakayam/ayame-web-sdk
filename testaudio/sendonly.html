@@ -19,6 +19,8 @@
       </div>
       <div style="float:left;">
         <audio id="local-audio" autoplay controls muted></audio>
+        <!-- <audio id="local-audio" autoplay controls></audio> -->
+        <p>モニター音声を確認するには、ミュートを解除してください</p>
       </div>
       <script src="../dist/ayame.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
@@ -31,19 +33,39 @@
         if (signalingKey) {
           options.signalingKey = signalingKey;
         }
+        let mediaStream;
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
-        conn.on('disconnect', (e) => console.log(e));
+        conn.on('disconnect', (e) => {
+          console.log('<disconnected from peer>');
+          console.log(e);
+        });
+       conn.on('addstream', async (e) => {
+          console.log(e.stream);
+          remoteVideo.srcObject = e.stream;
+        });
         const startConn = async () => {
-          const mediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
-
-          // setup monitor audio, unmute audio controll to hear monitoring sound
-          document.querySelector('#local-audio').srcObject = mediaStream;
-          
           // wait for peer connection
           await conn.connect(mediaStream);
+
+          // at this point, we are connected
+          //document.querySelector('#local-audio').srcObject = mediaStream;
+          console.log('<connected>');
         };
+        const gotStream = function(stream) {
+          mediaStream = stream;
+          // start monitor local audio before actual connection
+          // unmute and use headset to prevent howling audio response
+          document.querySelector('#local-audio').srcObject = mediaStream;
+        }
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
+
+        // this will wait for media ready (including user agreement with using MIC device)
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+          .then(gotStream)
+          .catch(e => {
+            alert(`getUserMedia() error: ${e.name}`);
+        });
       </script>
   </body>
 </html>
