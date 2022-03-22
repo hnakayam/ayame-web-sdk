@@ -26,7 +26,7 @@
       <script type="text/javascript">
         const options = Ayame.defaultOptions;
         options.clientId = clientId ? clientId : options.clientId;
-        //options.video.direction = 'recvonly';
+        options.video.enabled = false;  // disable video
         options.audio.direction = 'recvonly';
         if (signalingKey) {
           options.signalingKey = signalingKey;
