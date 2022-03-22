@@ -39,9 +39,9 @@
           console.log('<disconnected from peer>');
           console.log(e);
         });
-       conn.on('addstream', async (e) => {
+        conn.on('addstream', async (e) => {
           console.log(e.stream);
-          remoteVideo.srcObject = e.stream;
+          //remoteVideo.srcObject = e.stream;
         });
         const startConn = async () => {
           // wait for peer connection
