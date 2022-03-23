@@ -14,6 +14,23 @@
         <p>クライアントID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
+        <p>オーディオコーデック
+          <select id="codec" onChange="onChangeAudioCodec();" >
+              <!-- Codec values are matched with how they appear in the SDP.
+              For instance, opus matches opus/48000/2 in Chrome, and ISAC/16000
+              matches 16K iSAC (but not 32K iSAC). -->
+              <option selected value="none">Default</option>
+              <option value="opus">Opus</option>
+              <option value="ISAC">iSAC 16K</option>
+              <option value="G722">G722</option>
+              <option value="PCMU">PCMU</option>
+              <option value="PCMA">PCMA</option>
+              <option value="red">RED</option>
+          </select>
+          <select id="codecPreferences" onChange="onChangeAudioCodec();" disabled>
+              <option selected value="none">Default</option>
+          </select>
+        </p>
         <button onclick="startConn();">接続</button>
         <button onclick="conn.disconnect();">切断</button>
       </div>
@@ -25,23 +42,48 @@
       <script src="./main.js"></script>
       <script type="text/javascript">
         const options = Ayame.defaultOptions;
-        options.clientId = clientId ? clientId : options.clientId;
         options.video.enabled = false;  // disable video
         options.audio.direction = 'recvonly';
+        options.video.codec = videoCodec; // this will set "null"
+        options.audio.codec = audioCodec; // this will set "null"
+        options.clientId = clientId ? clientId : options.clientId;
+
+        // the actual audio.codec will be set just before connect() call
         if (signalingKey) {
           options.signalingKey = signalingKey;
         }
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
         conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
-        conn.on('disconnect', (e) => console.log(e));
+        conn.on('disconnect', (e) => {
+          console.log('<disconnected from peer>');
+          console.log(e);
+        });
         conn.on('addstream', (e) => {
           document.querySelector('#remote-audio').srcObject = e.stream;
         });
         const startConn = async () => {
+          // check if browser supports codec preference
+          if (supportsSetCodecPreferences && audioCodec !== null) {
+
+            // audioCodec is actually same as bellow
+            //const preferredCodec = codecPreferences.options[codecPreferences.selectedIndex];
+
+            options.audio.codec = audioCodec;   // update audio.codec option
+            conn.options = options;
+
+            // "PCMU" or "audio/PCMU 8000" type audio codec string
+            console.log('Preferred audio codec :', audioCodec);
+          }
+
+          // start and wait for peer connection
           await conn.connect(null);
+
+          // at this point, we are connected
+          console.log('<connected>');
         };
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
+        SetupAudioCodecSelect(false);  // initialize audio codecs for receiver
       </script>
   </body>
 </html>

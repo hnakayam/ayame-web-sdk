@@ -14,6 +14,23 @@
         <p>クライアントID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
+        <p>オーディオコーデック
+          <select id="codec" onChange="onChangeAudioCodec();" >
+              <!-- Codec values are matched with how they appear in the SDP.
+              For instance, opus matches opus/48000/2 in Chrome, and ISAC/16000
+              matches 16K iSAC (but not 32K iSAC). -->
+              <option selected value="none">Default</option>
+              <option value="opus">Opus</option>
+              <option value="ISAC">iSAC 16K</option>
+              <option value="G722">G722</option>
+              <option value="PCMU">PCMU</option>
+              <option value="PCMA">PCMA</option>
+              <option value="red">RED</option>
+          </select>
+          <select id="codecPreferences" onChange="onChangeAudioCodec();" disabled>
+              <option selected value="none">Default</option>
+          </select>
+        </p>
         <button onclick="startConn();">接続</button>
         <button onclick="conn && conn.disconnect();">切断</button>
       </div>
@@ -32,9 +49,13 @@
       <script src="./main.js"></script>
       <script type="text/javascript">
         const options = Ayame.defaultOptions;
-        options.clientId = clientId ? clientId : options.clientId;
         options.video.enabled = false;  // disable video
         options.audio.direction = 'sendrecv';
+        options.video.codec = videoCodec; // this will set "null"
+        options.audio.codec = audioCodec; // this will set "null"
+        options.clientId = clientId ? clientId : options.clientId;
+
+        // the actual audio.codec will be set just before connect() call
         if (signalingKey) {
           options.signalingKey = signalingKey;
         }
@@ -54,21 +75,42 @@
           document.querySelector('#remote-audio').srcObject = e.stream;
         });
         const startConn = async () => {
+          // check if browser supports codec preference
+          if (supportsSetCodecPreferences && audioCodec !== null) {
+
+            // audioCodec is actually same as bellow
+            //const preferredCodec = codecPreferences.options[codecPreferences.selectedIndex];
+
+            options.audio.codec = audioCodec;   // update audio.codec option
+            conn.options = options;
+
+            // "PCMU" or "audio/PCMU 8000" type audio codec string
+            console.log('Preferred audio codec :', audioCodec);
+          }
+        	
           // wait for peer connection
           const authnMetadata = {hoge: "fuga"};
           await conn.connect(mediaStream,  {authnMetadata});
+          
           // at this point, we are connected
           //document.querySelector('#local-audio').srcObject = mediaStream;
           console.log('<connected>');
         };
         const gotStream = function(stream) {
           mediaStream = stream;
+          
+          const audioTracks = mediaStream.getAudioTracks();
+          if (audioTracks.length > 0) {
+            console.log(`Using Audio device: ${audioTracks[0].label}`);   // echo default device
+          }
+
           // start monitor local audio before actual connection
           // unmute and use headset to prevent howling audio response
           document.querySelector('#local-audio').srcObject = mediaStream;
         }
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
+        SetupAudioCodecSelect(true);  // initialize codecs for sender
 
         // this will wait for local media ready (including user agreement with using MIC device)
         navigator.mediaDevices.getUserMedia({ audio: true, video: false })

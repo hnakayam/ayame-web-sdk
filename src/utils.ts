@@ -1,4 +1,4 @@
-import { VideoCodecOption } from './connection/options';
+import { AudioCodecOption, VideoCodecOption } from './connection/options';
 
 /**
  * @ignore
@@ -130,4 +130,50 @@ export function removeCodec(sdp: string, codec: VideoCodecOption): string {
     return internalFunc(modsdp);
   }
   return internalFunc(sdp);
+}
+
+/** @private */
+export function getAudioCodecsFromString(codec: AudioCodecOption, codecs: Array<any>): Array<any> {
+  // check if codec start with 'audio/' 
+  if (codec.startsWith('audio/')) {
+    const [mimeType, clockRate, sdpFmtpLine] = codec.split(' ');
+    console.log(mimeType, clockRate, sdpFmtpLine);
+    //console.log(JSON.stringify(codecs, null, ' '));
+
+    const selectedCodecIndex = codecs.findIndex(c => c.mimeType === mimeType && c.clockRate === parseInt(clockRate, 10) && c.sdpFmtpLine === sdpFmtpLine);
+    const selectedCodec = codecs[selectedCodecIndex];
+    const filteredCodecs: Array<any> = codecs;
+    filteredCodecs.splice(selectedCodecIndex, 1);
+    filteredCodecs.unshift(selectedCodec);
+    filteredCodecs.splice(1);   // remove except 1st item
+    
+    // log codec preference
+    console.log('Preferred audio codec', selectedCodec);
+    console.log(JSON.stringify(filteredCodecs, null, ' '));
+
+    return filteredCodecs;
+  }
+
+  // otherwise, use codecs array provided and filter it
+  let mimeType = '';
+  if (codec === 'opus') {
+    mimeType = 'audio/opus';
+  } else if (codec === 'ISAC') {
+    mimeType = 'audio/ISAC';
+  } else if (codec === 'G722') {
+    mimeType = 'audio/G722';
+  } else if (codec === 'PCMU') {
+    mimeType = 'audio/PCMU';
+  } else if (codec === 'PCMA') {
+    mimeType = 'audio/PCMA';
+  } else if (codec === 'red') {
+    mimeType = 'audio/red';
+  } else {
+    mimeType = `audio/${codec}`;
+  }
+  const filteredCodecs: Array<any> = codecs.filter((c) => c.mimeType == mimeType);
+  if (filteredCodecs.length < 1) {
+    throw new Error('invalid audio codec type');
+  }
+  return filteredCodecs;
 }

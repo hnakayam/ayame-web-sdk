@@ -58,8 +58,8 @@ import { randomString } from './utils';
  * @type {ConnectionOptions} ConnectionOptions
  */
 export const defaultOptions: ConnectionOptions = {
-  audio: { direction: 'sendrecv', enabled: true },
-  video: { direction: 'sendrecv', enabled: true },
+  audio: { direction: 'sendrecv', enabled: true },  // note: codec is 'undefined'
+  video: { direction: 'sendrecv', enabled: true },  // note: codec is 'undefined'
   iceServers: [],
   clientId: randomString(17)
 };

@@ -1,6 +1,6 @@
 /* @private */
-import { traceLog, getVideoCodecsFromString, removeCodec, browser } from '../utils';
-import { ConnectionOptions, VideoCodecOption } from './options';
+import { traceLog, getAudioCodecsFromString, getVideoCodecsFromString, removeCodec, browser } from '../utils';
+import { ConnectionOptions, AudioCodecOption, VideoCodecOption } from './options';
 
 /**
  * @ignore
@@ -29,7 +29,7 @@ class ConnectionBase {
   _ws: WebSocket | null;
   _pc: RTCPeerConnection | null;
   _callbacks: any;
-  _removeCodec: boolean;
+  _removeVideoCodec: boolean;
   _isOffer: boolean;
   _isExistUser: boolean;
   _dataChannels: Array<RTCDataChannel>;
@@ -67,7 +67,7 @@ class ConnectionBase {
     this.roomId = roomId;
     this.signalingUrl = signalingUrl;
     this.options = options;
-    this._removeCodec = false;
+    this._removeVideoCodec = false;
     this.stream = null;
     this.remoteStream = null;
     this._pc = null;
@@ -100,7 +100,7 @@ class ConnectionBase {
     await this._closePeerConnection();
     await this._closeWebSocketConnection();
     this.authzMetadata = null;
-    this._removeCodec = false;
+    this._removeVideoCodec = false;
     this._isOffer = false;
     this._isExistUser = false;
     this._dataChannels = [];
@@ -193,12 +193,39 @@ class ConnectionBase {
   _createPeerConnection(): void {
     this._traceLog('RTCConfiguration=>', this._pcConfig);
     const pc = new RTCPeerConnection(this._pcConfig);
+
     const audioTrack = this.stream && this.stream.getAudioTracks()[0];
     if (audioTrack && this.options.audio.direction !== 'recvonly') {
-      pc.addTrack(audioTrack, this.stream!);
+      const audioSender = pc.addTrack(audioTrack, this.stream!);
+      const audioTransceiver = this._getTransceiver(pc, audioSender);
+      if (this._isAudioCodecSpecified() && audioTransceiver !== null) {
+        if (typeof audioTransceiver.setCodecPreferences !== 'undefined') {
+          const audioCapabilities = RTCRtpSender.getCapabilities('audio');  // get Sender capability
+          if (audioCapabilities && this.options.audio.codec) {
+            let audioCodecs = getAudioCodecsFromString(this.options.audio.codec, audioCapabilities.codecs);
+            this._traceLog('audio codecs=', audioCodecs);
+            audioTransceiver.setCodecPreferences(audioCodecs);
+          }
+        } else {
+          //this._removeAudioCodec = true;
+        }
+      }
     } else if (this.options.audio.enabled) {
-      pc.addTransceiver('audio', { direction: 'recvonly' });
+      const audioTransceiver = pc.addTransceiver('audio', { direction: 'recvonly' });
+      if (this._isAudioCodecSpecified()) {
+        if (typeof audioTransceiver.setCodecPreferences !== 'undefined') {
+          const audioCapabilities = RTCRtpReceiver.getCapabilities('audio');  // get Receivere capability
+          if (audioCapabilities && this.options.audio.codec) {
+            let audioCodecs = getAudioCodecsFromString(this.options.audio.codec, audioCapabilities.codecs);
+            this._traceLog('audio codecs=', audioCodecs);
+            audioTransceiver.setCodecPreferences(audioCodecs);
+          }
+        } else {
+          //this._removeAudioCodec = true;
+        }
+      }
     }
+
     const videoTrack = this.stream && this.stream.getVideoTracks()[0];
     if (videoTrack && this.options.video.direction !== 'recvonly') {
       const videoSender = pc.addTrack(videoTrack, this.stream!);
@@ -215,7 +242,7 @@ class ConnectionBase {
             videoTransceiver.setCodecPreferences(videoCodecs);
           }
         } else {
-          this._removeCodec = true;
+          this._removeVideoCodec = true;
         }
       }
     } else if (this.options.video.enabled) {
@@ -232,7 +259,7 @@ class ConnectionBase {
             videoTransceiver.setCodecPreferences(videoCodecs);
           }
         } else {
-          this._removeCodec = true;
+          this._removeVideoCodec = true;
         }
       }
     }
@@ -369,7 +396,7 @@ class ConnectionBase {
       offerToReceiveAudio: this.options.audio.enabled && this.options.audio.direction !== 'sendonly',
       offerToReceiveVideo: this.options.video.enabled && this.options.video.direction !== 'sendonly'
     });
-    if (this._removeCodec && this.options.video.codec) {
+    if (this._removeVideoCodec && this.options.video.codec) {
       const codecs: Array<VideoCodecOption> = ['VP8', 'VP9', 'H264'];
       codecs.forEach((codec: VideoCodecOption) => {
         if (this.options.video.codec !== codec) {
@@ -383,6 +410,11 @@ class ConnectionBase {
       this._sendSdp(this._pc.localDescription);
     }
     this._isOffer = true;
+  }
+
+  _isAudioCodecSpecified(): boolean {
+    // "this.options.audio.codec" can be "null" or "undefined"
+    return this.options.audio.enabled && this.options.audio.codec !== null;
   }
 
   _isVideoCodecSpecified(): boolean {
