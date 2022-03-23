@@ -15,7 +15,7 @@
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
         <p>オーディオコーデック
-          <select id="codec" onChange="onChangeAudioCodec();" >
+          <select id="codec">
               <!-- Codec values are matched with how they appear in the SDP.
               For instance, opus matches opus/48000/2 in Chrome, and ISAC/16000
               matches 16K iSAC (but not 32K iSAC). -->
@@ -27,7 +27,7 @@
               <option value="PCMA">PCMA</option>
               <option value="red">RED</option>
           </select>
-          <select id="codecPreferences" onChange="onChangeAudioCodec();" disabled>
+          <select id="codecPreferences" disabled>
               <option selected value="none">Default</option>
           </select>
         </p>
@@ -46,8 +46,6 @@
         const options = Ayame.defaultOptions;
         options.video.enabled = false;  // disable video
         options.audio.direction = 'sendonly';
-        options.video.codec = videoCodec; // this will set "null"
-        options.audio.codec = audioCodec; // this will set "null"
         options.clientId = clientId ? clientId : options.clientId;
 
         // the actual audio.codec will be set just before connect() call
@@ -66,16 +64,13 @@
         });
         const startConn = async () => {
           // check if browser supports codec preference
-          if (supportsSetCodecPreferences && audioCodec !== null) {
+          if (supportsSetCodecPreferences) {
 
-            // audioCodec is actually same as bellow
-            //const preferredCodec = codecPreferences.options[codecPreferences.selectedIndex];
-
-            options.audio.codec = audioCodec;   // update audio.codec option
+            options.audio.codec = GetAudioCodecSelect();   // update audio.codec option
             conn.options = options;
 
-            // "PCMU" or "audio/PCMU 8000" type audio codec string
-            console.log('Preferred audio codec :', audioCodec);
+            // "PCMU" or "audio/PCMU 8000" type audio codec string, or "none" if Default selected
+            console.log('Preferred audio codec :', options.audio.codec);
           }
 
           // start and wait for peer connection
@@ -99,7 +94,7 @@
         }
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
-        SetupAudioCodecSelect(true);  // initialize codecs for sender
+        SetupAudioCodecSelect(true);  // initialize audio codecs for sender
 
         // this will wait for local media ready (including user agreement with using MIC device)
         navigator.mediaDevices.getUserMedia({ audio: true, video: false })

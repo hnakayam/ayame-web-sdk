@@ -126,6 +126,12 @@
     }
     /** @private */
     function getAudioCodecsFromString(codec, codecs) {
+        // check if 'none' means reset to Default codecs list
+        if (codec === 'none') {
+            // just return default codec
+            const filteredCodecs = codecs;
+            return filteredCodecs;
+        }
         // check if codec start with 'audio/' 
         if (codec.startsWith('audio/')) {
             const [mimeType, clockRate, sdpFmtpLine] = codec.split(' ');
@@ -137,9 +143,9 @@
             filteredCodecs.splice(selectedCodecIndex, 1);
             filteredCodecs.unshift(selectedCodec);
             filteredCodecs.splice(1); // remove except 1st item
-            // log codec preference
-            console.log('Preferred audio codec', selectedCodec);
-            console.log(JSON.stringify(filteredCodecs, null, ' '));
+            // log codec preference (for Debug)
+            //console.log('Preferred audio codec', selectedCodec);
+            //console.log(JSON.stringify(filteredCodecs, null, ' '));
             return filteredCodecs;
         }
         // otherwise, use codecs array provided and filter it
@@ -354,7 +360,7 @@
                 const audioTransceiver = pc.addTransceiver('audio', { direction: 'recvonly' });
                 if (this._isAudioCodecSpecified()) {
                     if (typeof audioTransceiver.setCodecPreferences !== 'undefined') {
-                        const audioCapabilities = RTCRtpReceiver.getCapabilities('audio'); // get Receivere capability
+                        const audioCapabilities = RTCRtpReceiver.getCapabilities('audio'); // get Receiver capability
                         if (audioCapabilities && this.options.audio.codec) {
                             let audioCodecs = getAudioCodecsFromString(this.options.audio.codec, audioCapabilities.codecs);
                             this._traceLog('audio codecs=', audioCodecs);
@@ -559,8 +565,10 @@
             this._isOffer = true;
         }
         _isAudioCodecSpecified() {
-            // "this.options.audio.codec" can be "null" or "undefined"
-            return this.options.audio.enabled && this.options.audio.codec !== null;
+            // "this.options.audio.codec" can be "null" or "undefined" so exclude these cases
+            //return this.options.audio.enabled && this.options.audio.codec !== null && typeof this.options.audio.codec !== "undefined";
+            // "this.options.audio.codec" can be "null" or "undefined" so exclude these 2 cases using "!= null" (same as above)
+            return this.options.audio.enabled && this.options.audio.codec != null;
         }
         _isVideoCodecSpecified() {
             return this.options.video.enabled && this.options.video.codec !== null;

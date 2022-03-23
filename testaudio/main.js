@@ -1,7 +1,6 @@
 const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
 let roomId = 'ayame-test-sdk';
 let clientId = null;
-let audioCodec = null;
 let videoCodec = null;
 let messages = "";
 let signalingKey = null;
@@ -64,15 +63,14 @@ function SetupAudioCodecSelect(sender) {
   }
 }
 
-function onChangeAudioCodec() {
+function GetAudioCodecSelect() {
   // check "select#codec" then "select#codecPreferences"
+  let codec;
   if (codecPreferences.disabled) {
-    audioCodec = document.getElementById("codec").value;
+    codec = document.getElementById("codec").value;
   }
   else {
-    audioCodec = document.getElementById("codecPreferences").value;
+    codec = document.getElementById("codecPreferences").value;
   }
-  if (audioCodec == 'none') {
-    audioCodec = null;
-  }
+  return codec; // return 'none' if Default selected.
 }

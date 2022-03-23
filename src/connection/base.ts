@@ -207,6 +207,7 @@ class ConnectionBase {
             audioTransceiver.setCodecPreferences(audioCodecs);
           }
         } else {
+          // in case browser does not have capability
           //this._removeAudioCodec = true;
         }
       }
@@ -214,7 +215,7 @@ class ConnectionBase {
       const audioTransceiver = pc.addTransceiver('audio', { direction: 'recvonly' });
       if (this._isAudioCodecSpecified()) {
         if (typeof audioTransceiver.setCodecPreferences !== 'undefined') {
-          const audioCapabilities = RTCRtpReceiver.getCapabilities('audio');  // get Receivere capability
+          const audioCapabilities = RTCRtpReceiver.getCapabilities('audio');  // get Receiver capability
           if (audioCapabilities && this.options.audio.codec) {
             let audioCodecs = getAudioCodecsFromString(this.options.audio.codec, audioCapabilities.codecs);
             this._traceLog('audio codecs=', audioCodecs);
@@ -413,8 +414,11 @@ class ConnectionBase {
   }
 
   _isAudioCodecSpecified(): boolean {
-    // "this.options.audio.codec" can be "null" or "undefined"
-    return this.options.audio.enabled && this.options.audio.codec !== null;
+    // "this.options.audio.codec" can be "null" or "undefined" so exclude these 2 cases
+    //return this.options.audio.enabled && this.options.audio.codec !== null && typeof this.options.audio.codec !== "undefined";
+
+    // "this.options.audio.codec" can be "null" or "undefined" so exclude these 2 cases using "!= null" (same as above)
+    return this.options.audio.enabled && this.options.audio.codec != null;
   }
 
   _isVideoCodecSpecified(): boolean {

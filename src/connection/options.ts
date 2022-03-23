@@ -19,8 +19,16 @@ export type ConnectionDirection = 'sendrecv' | 'recvonly' | 'sendonly';
  * - PCMU
  * - PCMA
  * - red
+ * 
+ * 以下はDefaultコーデック指定に戻すことを意味する文字列です
+ * - none
+ * 
+ * これ以外に "audio/"で始まる文字列(ただしRTCRtpSender.getCapabilities('audio')内にあるもの)を指定可能です
+ * 例: "audio/opus 48000 minptime=10;useinbandfec=1"
+ * 
+ * null や　初期状態(undefined)の場合、codec指定は更新されません
  */
- export type AudioCodecOption = 'opus' | 'ISAC' | 'G722' | 'PCMU' |  'PCMA' | 'red';
+ export type AudioCodecOption = 'opus' | 'ISAC' | 'G722' | 'PCMU' |  'PCMA' | 'red' | 'none';
 
 /**
  * @typedef {Object} ConnectionAudioOption - オーディオ接続に関するオプションです。

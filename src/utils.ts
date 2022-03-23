@@ -134,6 +134,13 @@ export function removeCodec(sdp: string, codec: VideoCodecOption): string {
 
 /** @private */
 export function getAudioCodecsFromString(codec: AudioCodecOption, codecs: Array<any>): Array<any> {
+  // check if 'none' means reset to Default codecs list
+  if (codec === 'none') {
+    // just return default codec
+    const filteredCodecs: Array<any> = codecs;
+    return filteredCodecs;
+  }
+
   // check if codec start with 'audio/' 
   if (codec.startsWith('audio/')) {
     const [mimeType, clockRate, sdpFmtpLine] = codec.split(' ');
@@ -147,10 +154,9 @@ export function getAudioCodecsFromString(codec: AudioCodecOption, codecs: Array<
     filteredCodecs.unshift(selectedCodec);
     filteredCodecs.splice(1);   // remove except 1st item
     
-    // log codec preference
-    console.log('Preferred audio codec', selectedCodec);
-    console.log(JSON.stringify(filteredCodecs, null, ' '));
-
+    // log codec preference (for Debug)
+    //console.log('Preferred audio codec', selectedCodec);
+    //console.log(JSON.stringify(filteredCodecs, null, ' '));
     return filteredCodecs;
   }
 
