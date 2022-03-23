@@ -1,5 +1,5 @@
 const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
-let roomId = 'ayame-test-sdk';
+let roomId = 'release2-test-room1';
 let clientId = null;
 let videoCodec = null;
 let messages = "";
