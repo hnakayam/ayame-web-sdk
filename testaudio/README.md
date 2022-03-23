@@ -79,7 +79,7 @@ let roomId = 'ayame-test-sdk';
 
 このディレクトリ内のテスト.htmlファイルは ビルド済みの dist/ayame.js のみを参照します。
 
-ayame-web-sdk の .tsファイルを更新し再ビルドするときは、ベースディレクトリで ('yarn install' 実行後に)
+ayame-web-sdk の .tsファイルを更新し再ビルドするときは、ベースディレクトリで (`yarn install` 実行後に)
 
 `yarn build`
 
