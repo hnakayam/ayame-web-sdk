@@ -54,6 +54,10 @@ function SetupAudioCodecSelect(sender) {
         option.value = (codec.mimeType + ' ' + codec.clockRate + ' ' +
           (codec.sdpFmtpLine || '')).trim();
         option.innerText = option.value;
+        // select "audio/PCMU" for default codec
+        if (codec.mimeType === 'audio/PCMU') {
+          option.defaultSelected = true;
+        }
         codecPreferences.appendChild(option);
       });
       codecPreferences.disabled = false;
