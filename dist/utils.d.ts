@@ -1,4 +1,4 @@
-import { VideoCodecOption } from './connection/options';
+import { AudioCodecOption, VideoCodecOption } from './connection/options';
 /**
  * @ignore
  */
@@ -17,3 +17,5 @@ export declare function getVideoCodecsFromString(codec: VideoCodecOption, codecs
  * @ignore
  */
 export declare function removeCodec(sdp: string, codec: VideoCodecOption): string;
+/** @private */
+export declare function getAudioCodecsFromString(codec: AudioCodecOption, codecs: Array<any>): Array<any>;

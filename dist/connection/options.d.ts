@@ -7,11 +7,27 @@
  */
 export declare type ConnectionDirection = 'sendrecv' | 'recvonly' | 'sendonly';
 /**
+ * @public
+ * @typedef {string} AudioCodecOption - オーディオ接続のコーデックに関する標準オプションです。
+ *
+ * 以下のオプションはSDPで利用されている文字列です
+ *
+ * - opus
+ * - ISAC
+ * - G722
+ * - PCMU
+ * - PCMA
+ * - red
+ */
+export declare type AudioCodecOption = 'opus' | 'ISAC' | 'G722' | 'PCMU' | 'PCMA' | 'red';
+/**
  * @typedef {Object} ConnectionAudioOption - オーディオ接続に関するオプションです。
+ * @property {AudioCodecOption} codec コーデックの設定(オプション)
  * @property {ConnectionDirection} direction 送受信方向
  * @property {boolean} enabled 有効かどうかのフラグ
  */
 export interface ConnectionAudioOption {
+    codec?: AudioCodecOption;
     direction: ConnectionDirection;
     enabled: boolean;
 }
@@ -26,7 +42,7 @@ export interface ConnectionAudioOption {
 export declare type VideoCodecOption = 'VP8' | 'VP9' | 'AV1' | 'H264' | 'H265';
 /**
  * @typedef {Object} ConnectionVideoOption - ビデオ接続に関するオプションです。
- * @property {VideoCodecOption} codec コーデックの設定
+ * @property {VideoCodecOption} codec コーデックの設定(オプション)
  * @property {ConnectionDirection} direction 送受信方向
  * @property {boolean} enabled 有効かどうかのフラグ
  */

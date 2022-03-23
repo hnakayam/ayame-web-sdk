@@ -15,7 +15,7 @@ declare class ConnectionBase {
     _ws: WebSocket | null;
     _pc: RTCPeerConnection | null;
     _callbacks: any;
-    _removeCodec: boolean;
+    _removeVideoCodec: boolean;
     _isOffer: boolean;
     _isExistUser: boolean;
     _dataChannels: Array<RTCDataChannel>;
@@ -48,6 +48,7 @@ declare class ConnectionBase {
     _createDataChannel(label: string, options: RTCDataChannelInit | undefined): Promise<RTCDataChannel | null>;
     _onDataChannel(event: RTCDataChannelEvent): void;
     _sendOffer(): Promise<void>;
+    _isAudioCodecSpecified(): boolean;
     _isVideoCodecSpecified(): boolean;
     _createAnswer(): Promise<void>;
     _setAnswer(sessionDescription: RTCSessionDescription): Promise<void>;
