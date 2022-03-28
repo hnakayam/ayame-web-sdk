@@ -102,14 +102,16 @@ function gotDevices(deviceInfos) {
     if (deviceInfo.kind === 'audioinput') {
       option.text = deviceInfo.label || `microphone ${audioInputSelect.length + 1}`;
       audioInputSelect.appendChild(option);
+      console.log('audio input: ', option.text, ` Id: ${deviceInfo.deviceId}`);
     } else if (deviceInfo.kind === 'audiooutput') {
       option.text = deviceInfo.label || `speaker ${audioOutputSelect.length + 1}`;
       audioOutputSelect.appendChild(option);
+      console.log('audio output: ', option.text, ` Id: ${deviceInfo.deviceId}`);
     } else if (deviceInfo.kind === 'videoinput') {
       option.text = deviceInfo.label || `camera ${videoSelect.length + 1}`;
       // skip Camera device
       //videoSelect.appendChild(option);
-      //console.log('Camera source/device: ', deviceInfo.label || `camera ${videoSelect.length + 1}`);
+      //console.log('Camera source: ', option.text, ` Id: ${deviceInfo.deviceId}`);
     } else {
       console.log('Some other kind of source/device: ', deviceInfo);
     }
@@ -147,9 +149,41 @@ function handleError(error) {
 }
 
 // enumerate media devices
+// this also requests user the permission???
 navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
 
-// get desired UserMedia
+// Attach audio output device to audio/video element using device/sink ID.
+function attachSinkId(element, sinkId) {
+  if (element == null) {
+    // exclude 'null' or 'undefined'
+    console.log(`Invalid element passed: ${element}`);
+  } else if (typeof element.sinkId !== 'undefined') {
+    element.setSinkId(sinkId)
+        .then(() => {
+          console.log(`Success, audio output device changed to: ${sinkId}`);
+        })
+        .catch(error => {
+          let errorMessage = error;
+          if (error.name === 'SecurityError') {
+            errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`;
+          }
+          console.error(errorMessage);
+          // Jump back to first output device in the list as it's the default.
+          audioOutputSelect.selectedIndex = 0;
+        });
+  } else {
+    console.warn('Browser does not support output device selection.');
+  }
+}
+
+// attach selected audio output to remote audio controls
+function changeAudioDestination() {
+  const audioDestination = audioOutputSelect.value;   // get current audioOutput device Id selected
+  const element = document.querySelector('#remote-audio');
+  attachSinkId(element, audioDestination);
+}
+
+// get desired UserMedia for send
 // we only use audioSource
 function start() {
   // if (window.stream) {

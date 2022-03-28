@@ -14,6 +14,17 @@
         <p>クライアントID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
+        <div style='display:none;'>
+          <p>オーディオ入力
+            <select id="audioSource"></select>
+          </p>
+        </div>
+        <div>
+          <p>オーディオ出力
+            <select id="audioOutput"></select>
+          </p>
+          <p>オーディオ出力デバイスはいつでも変更可能です。</p>
+        </div>
         <!-- select audio codec in recvonly.html appears not working so disabled. -->
         <!-- <p>オーディオコーデック
           <select id="codec">
@@ -48,6 +59,8 @@
         if (signalingKey) {
           options.signalingKey = signalingKey;
         }
+
+        // start Ayame connection and define message handler
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
         conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
         conn.on('disconnect', (e) => {
@@ -76,7 +89,16 @@
         };
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
-        // SetupAudioCodecSelect(false);  // initialize audio codecs for receiver
+        // SetupAudioCodecSelect(false);  // initialize audio codecs for receiver (disabled)
+
+        // we only use audio output destination
+        //audioInputSelect.onchange = start;
+        audioOutputSelect.onchange = changeAudioDestination;
+        //videoSelect.onchange = start;
+
+        // call fake getUserMedia in order to get user's permission before actual changing of audio output device
+        navigator.mediaDevices.getUserMedia({audio:true});
+
       </script>
   </body>
 </html>
