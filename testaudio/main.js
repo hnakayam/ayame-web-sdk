@@ -7,16 +7,8 @@ let roomId = 'ayame-test-sdk';
 const codecMimeTypeInitial = null;
 
 let clientId = null;
-let videoCodec = null;
 let messages = "";
 let signalingKey = null;
-
-function onChangeVideoCodec() {
-  videoCodec = document.getElementById("video-codec").value;
-  if (videoCodec == 'none') {
-    videoCodec = null;
-  }
-}
 
 // query string から roomId, clientId を取得するヘルパー
 function parseQueryString() {
