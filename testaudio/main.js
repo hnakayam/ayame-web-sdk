@@ -2,7 +2,7 @@
 const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
 let roomId = 'ayame-test-sdk';
 
-// select 'audio/PCMU' or other MIME type for initial selection (if any)
+// select 'audio/PCMU' or other MIME type for audio codec initial selection (if any)
 //const codecMimeTypeInitial = 'audio/PCMU'
 const codecMimeTypeInitial = null;
 
