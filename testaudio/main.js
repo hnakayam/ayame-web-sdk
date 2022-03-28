@@ -1,5 +1,11 @@
+// ayame signaling server parameters
 const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
 let roomId = 'ayame-test-sdk';
+
+// select 'audio/PCMU' or other MIME type for initial selection (if any)
+//const codecMimeTypeInitial = 'audio/PCMU'
+const codecMimeTypeInitial = null;
+
 let clientId = null;
 let videoCodec = null;
 let messages = "";
@@ -54,6 +60,10 @@ function SetupAudioCodecSelect(sender) {
         option.value = (codec.mimeType + ' ' + codec.clockRate + ' ' +
           (codec.sdpFmtpLine || '')).trim();
         option.innerText = option.value;
+        // select specific MimeType for the first selection
+        if (codec.mimeType === codecMimeTypeInitial) {
+          option.defaultSelected = true;
+        }
         codecPreferences.appendChild(option);
       });
       codecPreferences.disabled = false;
