@@ -6,6 +6,8 @@ let roomId = 'ayame-test-sdk';
 //const codecMimeTypeInitial = 'audio/PCMU'
 const codecMimeTypeInitial = null;
 
+let mediaStream;  // for local audio device
+
 let clientId = null;
 let messages = "";
 let signalingKey = null;
@@ -75,4 +77,93 @@ function GetAudioCodecSelect() {
     codec = document.getElementById("codecPreferences").value;
   }
   return codec; // return 'none' if Default selected.
+}
+
+// setup audio input/output select
+const audioInputSelect = document.querySelector('select#audioSource');
+const audioOutputSelect = document.querySelector('select#audioOutput');
+const audioSelectors = [audioInputSelect, audioOutputSelect];
+
+audioOutputSelect.disabled = !('sinkId' in HTMLMediaElement.prototype);
+
+// define getUserMedia callback
+function gotDevices(deviceInfos) {
+  // Handles being called several times to update labels. Preserve values.
+  const values = audioSelectors.map(select => select.value);
+  audioSelectors.forEach(select => {
+    while (select.firstChild) {
+      select.removeChild(select.firstChild);
+    }
+  });
+  for (let i = 0; i !== deviceInfos.length; ++i) {
+    const deviceInfo = deviceInfos[i];
+    const option = document.createElement('option');
+    option.value = deviceInfo.deviceId;
+    if (deviceInfo.kind === 'audioinput') {
+      option.text = deviceInfo.label || `microphone ${audioInputSelect.length + 1}`;
+      audioInputSelect.appendChild(option);
+    } else if (deviceInfo.kind === 'audiooutput') {
+      option.text = deviceInfo.label || `speaker ${audioOutputSelect.length + 1}`;
+      audioOutputSelect.appendChild(option);
+    } else if (deviceInfo.kind === 'videoinput') {
+      option.text = deviceInfo.label || `camera ${videoSelect.length + 1}`;
+      // skip Camera device
+      //videoSelect.appendChild(option);
+      //console.log('Camera source/device: ', deviceInfo.label || `camera ${videoSelect.length + 1}`);
+    } else {
+      console.log('Some other kind of source/device: ', deviceInfo);
+    }
+  }
+
+  // set both audioSource and audioOutput
+  audioSelectors.forEach((select, selectorIndex) => {
+    if (Array.prototype.slice.call(select.childNodes).some(n => n.value === values[selectorIndex])) {
+      select.value = values[selectorIndex];
+    }
+  });
+}
+
+// define getUserMedia callback for audio/video streaming start
+function gotStream(stream) {
+  mediaStream = stream;   // remember local stream used
+  //window.stream = stream; // make stream (feedback) available to console
+
+  const audioTracks = mediaStream.getAudioTracks();
+  if (audioTracks.length > 0) {
+    console.log(`Using Audio input device: ${audioTracks[0].label}`);   // echo audio input device
+  }
+
+  // use Audio/Video controls to monitor local video/audio
+  // unmute and use headset to prevent howling audio response
+  document.querySelector('#local-audio').srcObject = mediaStream;
+  //videoElement.srcObject = stream;
+
+  // Refresh button list in case labels have become available
+  return navigator.mediaDevices.enumerateDevices();
+}
+
+function handleError(error) {
+  console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
+}
+
+// enumerate media devices
+navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
+
+// get desired UserMedia
+// we only use audioSource
+function start() {
+  // if (window.stream) {
+  //   window.stream.getTracks().forEach(track => {
+  //     track.stop();
+  //   });
+  // }
+
+  const audioSource = audioInputSelect.value;
+  //const videoSource = videoSelect.value;
+  const constraints = {
+    audio: {deviceId: audioSource ? {exact: audioSource} : undefined},
+    //video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+    video: false
+  };
+  navigator.mediaDevices.getUserMedia(constraints).then(gotStream).then(gotDevices).catch(handleError);
 }

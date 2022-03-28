@@ -14,6 +14,16 @@
         <p>クライアントID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
+        <div>
+          <p>オーディオ入力
+            <select id="audioSource"></select>
+          </p>
+        </div>
+        <div style='display:none;'>
+          <p>オーディオ出力
+            <select id="audioOutput"></select>
+          </p>
+        </div>
         <p>オーディオコーデック
           <select id="codec">
               <!-- Codec values are matched with how they appear in the SDP.
@@ -52,7 +62,8 @@
         if (signalingKey) {
           options.signalingKey = signalingKey;
         }
-        let mediaStream;  // for local audio device
+
+        // start Ayame connection and define message handler
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
         conn.on('disconnect', (e) => {
           console.log('<disconnected from peer>');
@@ -73,35 +84,25 @@
             console.log('Preferred audio codec :', options.audio.codec);
           }
 
-          // start and wait for peer connection
+          // start and wait for peer connection, providing local audio/video stream
           await conn.connect(mediaStream);
 
           // at this point, we are connected
           //document.querySelector('#local-audio').srcObject = mediaStream;
           console.log('<connected>');
         };
-        const gotStream = function(stream) {
-          mediaStream = stream;
-          
-          const audioTracks = mediaStream.getAudioTracks();
-          if (audioTracks.length > 0) {
-            console.log(`Using Audio device: ${audioTracks[0].label}`);   // echo default device
-          }
-
-          // start monitor local audio before actual connection
-          // unmute and use headset to prevent howling audio response
-          document.querySelector('#local-audio').srcObject = mediaStream;
-        }
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
         SetupAudioCodecSelect(true);  // initialize audio codecs for sender
 
-        // this will wait for local media ready (including user agreement with using MIC device)
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-          .then(gotStream)
-          .catch(e => {
-            alert(`getUserMedia() error: ${e.name}`);
-        });
+        // we only use audio input source
+        audioInputSelect.onchange = start;
+        //audioOutputSelect.onchange = changeAudioDestination;
+        //videoSelect.onchange = start;
+
+        // get mediaDevices and start local monitoring
+        start();
+
       </script>
   </body>
 </html>
