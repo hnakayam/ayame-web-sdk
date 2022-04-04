@@ -14,6 +14,17 @@
         <p>クライアントID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
+        <div>
+          <p>オーディオ入力
+            <select id="audioSource"></select>
+          </p>
+        </div>
+        <div>
+          <p>オーディオ出力
+            <select id="audioOutput"></select>
+          </p>
+          <p>オーディオ出力デバイスはいつでも変更可能です。</p>
+        </div>
         <p>オーディオコーデック
           <select id="codec">
               <!-- Codec values are matched with how they appear in the SDP.
@@ -57,7 +68,8 @@
         if (signalingKey) {
           options.signalingKey = signalingKey;
         }
-        let mediaStream;  // for local audio device
+
+        // start Ayame connection and define message handler
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
         conn.on('open', ({authzMetadata}) => {
           console.log('<open> ');
@@ -91,28 +103,18 @@
           //document.querySelector('#local-audio').srcObject = mediaStream;
           console.log('<connected>');
         };
-        const gotStream = function(stream) {
-          mediaStream = stream;
-          
-          const audioTracks = mediaStream.getAudioTracks();
-          if (audioTracks.length > 0) {
-            console.log(`Using Audio device: ${audioTracks[0].label}`);   // echo default device
-          }
-
-          // start monitor local audio before actual connection
-          // unmute and use headset to prevent howling audio response
-          document.querySelector('#local-audio').srcObject = mediaStream;
-        }
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
         SetupAudioCodecSelect(true);  // initialize audio codecs for sender
 
-        // this will wait for local media ready (including user agreement with using MIC device)
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-          .then(gotStream)
-          .catch(e => {
-            alert(`getUserMedia() error: ${e.name}`);
-        });
+        // we use both audio input and audio output
+        audioInputSelect.onchange = start;
+        audioOutputSelect.onchange = changeAudioDestination;
+        //videoSelect.onchange = start;
+
+        // get mediaDevices and start local monitoring
+        start();
+
       </script>
   </body>
 </html>
