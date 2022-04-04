@@ -67,7 +67,9 @@
           console.log('<disconnected from peer>');
           console.log(e);
         });
-        conn.on('addstream', (e) => {
+        conn.on('addstream', async (e) => {
+          // remote stream connected
+          //console.log(e.stream);
           document.querySelector('#remote-audio').srcObject = e.stream;
         });
         const startConn = async () => {
