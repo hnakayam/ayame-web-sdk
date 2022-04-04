@@ -184,7 +184,7 @@ function changeAudioDestination() {
 }
 
 // get desired UserMedia for send
-// we only use audioSource
+// we only use audioSource, no videoSource used
 function start() {
   // if (window.stream) {
   //   window.stream.getTracks().forEach(track => {
