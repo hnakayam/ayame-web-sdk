@@ -1,13 +1,12 @@
 // ayame signaling server parameters
 const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
-let roomId = 'ayame-test-sdk';
+let roomId = 'release2.1-test-room1';
 
 // select 'audio/PCMU' or other MIME type for audio codec initial selection (if any)
-//const codecMimeTypeInitial = 'audio/PCMU'
-const codecMimeTypeInitial = null;
+const codecMimeTypeInitial = 'audio/PCMU'
+//const codecMimeTypeInitial = null;
 
 let mediaStream;  // for local audio device
-
 let clientId = null;
 let messages = "";
 let signalingKey = null;
