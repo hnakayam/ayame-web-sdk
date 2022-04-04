@@ -70,7 +70,8 @@
           console.log(e);
         });
         conn.on('addstream', async (e) => {
-          console.log(e.stream);
+          // remote stream connected
+          //console.log(e.stream);
           //remoteVideo.srcObject = e.stream;
         });
         const startConn = async () => {
