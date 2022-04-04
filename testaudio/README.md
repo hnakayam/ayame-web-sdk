@@ -1,10 +1,8 @@
-# ayame-web-sdk
+# testaudio
 
-## testaudio
+オーディオのみの通話を試すためのテスト用コードです。以下の順番で実行してください。
 
-オーディオのみ通話するテスト用コードです。以下の順番で実行してください。
-
-1. このプロジェクトは node.js を利用してビルド等を行います。以下を参照して `node.js` および `npm` をインストールしてください。
+1. このプロジェクトは node.js を利用してTypeScriptのビルド等を行います。以下を参照して `node.js` および `npm` をインストールしてください。
 
 https://nodejs.org/ja/download/
 
@@ -33,6 +31,15 @@ http://localhost:8080/testaudio/sendonly.html
 http://localhost:8080/testaudio/recvonly.html
 
 http://localhost:8080/testaudio/sendrecv.html
+
+
+同じAyameシグナリングサーバーに接続する同じroom IDの2つのブラウザ間でWebRTC通話が可能です。
+
+sendonly → recvonly
+sendrecv ⇔ sendrecv
+
+の2通りのシナリオで動作確認しています。
+
 
 ## 動作説明
 
@@ -66,7 +73,7 @@ http://localhost:8080/testaudio/sendrecv.html
 
 左側のオーディオコントロールはミュート解除すると(接続中かどうかに関係なく)ローカル音声のモニタが可能です。モニタ中にWebRTC接続すると、モニタ音声とリモート音声はミックスして出力されます。
 
-# Ayame シグナリングサーバー、Room IDの変更
+## Ayame シグナリングサーバー、Room IDの変更
 
 main.jsの以下の記述を変更してください。
 
@@ -75,11 +82,38 @@ const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
 let roomId = 'ayame-test-sdk';
 ```
 
-# .ts ファイルの更新と再ビルド
+## オーディオコーデックの変更
+
+sendonly.html と sendrecv.htmlでは、SDP answer送出時に使用するオーディオコーデックを変更することができます。
+
+Defaultが選択されているときに接続開始すると、SDP answerに使用可能なオーディオコーデックのリストが送出されます。
+
+いずれかのオーディオコーデックを選択すると、これが使用可能な唯一のオーディオコーデックとしてSDP answerが送出されるため、これが選択されます。
+
+また、main.js の以下の部分でMIME TYPEを指定する事で、.htmlファイルロード時に選択されているオーディオコーデックを変更することができます。 nullを指定すると Defaultがそのまま選択されます。
+
+```
+// select 'audio/PCMU' or other MIME type for audio codec initial selection (if any)
+//const codecMimeTypeInitial = 'audio/PCMU'
+const codecMimeTypeInitial = null;
+```
+
+recvonly.html 側で選択する方法は、Ayameシグナリングサーバーとの組み合わせではうまくオーディオコーデックの選択ができませんでした。
+
+## オーディオデバイスの選択
+
+sendonly.html と sendrecv.htmlではオーディオ入力 (マイク)に使用するデバイスを選択可能です。オーディオ入力デバイスの選択はWebRTC接続前のみ可能です。
+
+recvonly.html と sendrecv.htmlではWebRTCで受信した音声を出力するオーディオ出力デバイスを選択可能です。これはいつでも変更可能です。
+
+オーディオ入力をモニタする音声は、(オーディオ出力デバイスの選択に関係なく)デフォルト出力デバイスに出力されます。
+デフォルトの入力/出力オーディオデバイスはWindows10の場合コントロールパネルの「サウンド」や「設定」→「システム」→「サウンド」から変更可能です。
+
+## TypeScript (.ts) ファイルの更新と再ビルド
 
 このディレクトリ内のテスト.htmlファイルは ビルド済みの dist/ayame.js のみを参照します。
 
-ayame-web-sdk の .tsファイルを更新し再ビルドするときは、ベースディレクトリで (`yarn install` 実行後に)
+ayame-web-sdk の TypeScript (.ts)ファイルを更新し再ビルドするときは、ベースディレクトリで (`yarn install` 実行後に)
 
 `yarn build`
 
