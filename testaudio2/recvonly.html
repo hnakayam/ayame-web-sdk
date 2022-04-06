@@ -19,7 +19,7 @@
             <select id="audioSource"></select>
           </p>
         </div>
-        <div>
+        <div  style='display:none;'>
           <p>オーディオ出力
             <select id="audioOutput"></select>
           </p>
@@ -43,8 +43,8 @@
         <button onclick="startConn();">接続</button>
         <button onclick="conn.disconnect();">切断</button>
       </div>
-      <div style="float:right;">
-        <audio id="remote-audio" autoplay controls></audio>
+      <div id="remote-audio-controls" style="float:right;">
+        <!-- <audio id="remote-audio" autoplay controls></audio> -->
       </div>
       <script src="../dist/ayame.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
@@ -69,8 +69,16 @@
         });
         conn.on('addstream', async (e) => {
           // remote stream connected
-          //console.log(e.stream);
-          document.querySelector('#remote-audio').srcObject = e.stream;
+          // e: RTCTrackEvent class object, e.stream: MediaStream class object
+          console.log('<stream connected> stream = ', e.stream);
+          
+          // get all the 'audio' element snapshot NodeList inside container
+          const audioOutputs = document.querySelectorAll('audio');
+          console.log(audioOutputs.length, ' audio outputs.');
+
+          audioOutputs.forEach(function(control) {
+            control.srcObject = e.stream.clone();            
+          });
         });
         const startConn = async () => {
           // // check if browser supports codec preference
@@ -93,9 +101,9 @@
         document.querySelector("#clientIdInput").value = options.clientId;
         // SetupAudioCodecSelect(false);  // initialize audio codecs for receiver (disabled)
 
-        // we only use audio output destination
+        // we don't use device selectors
         //audioInputSelect.onchange = start;
-        audioOutputSelect.onchange = changeAudioDestination;
+        //audioOutputSelect.onchange = changeAudioDestination;
         //videoSelect.onchange = start;
 
         // call fake getUserMedia in order to get user's permission before actual changing of audio output device

@@ -1,6 +1,6 @@
 // ayame signaling server parameters
 const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
-let roomId = 'release2.1-test-room1';
+let roomId = 'release3-test-room1';
 
 // select 'audio/PCMU' or other MIME type for audio codec initial selection (if any)
 const codecMimeTypeInitial = 'audio/PCMU'
@@ -79,11 +79,40 @@ function GetAudioCodecSelect() {
 }
 
 // setup audio input/output select
+// at this point we dont display ouput select but used for simplicity
 const audioInputSelect = document.querySelector('select#audioSource');
 const audioOutputSelect = document.querySelector('select#audioOutput');
 const audioSelectors = [audioInputSelect, audioOutputSelect];
 
-audioOutputSelect.disabled = !('sinkId' in HTMLMediaElement.prototype);
+// audioOutputSelect is always disabled
+//audioOutputSelect.disabled = !('sinkId' in HTMLMediaElement.prototype);
+
+// parent element for remote audio (output) controls
+const remoteAudioControls = document.querySelector('#remote-audio-controls');
+
+// create HTMLMediaElement ( audio control ) for specified audio sink/output device
+async function createAudioOutControl(labeltext, deviceId) {
+  console.log( `audio control created for ${labeltext}, Id: ${deviceId}`);
+
+  const $p = document.createElement('p');
+
+  const $label = document.createElement('label');
+  $label.setAttribute('for', deviceId);
+  $label.innerHTML = labeltext;
+
+  const $audio = document.createElement('audio');
+  $audio.setAttribute('id', deviceId);
+  $audio.setAttribute('autoplay', true);
+  $audio.setAttribute('controls', true);
+  // 'srcObject' will be set when 'addstream' message came in
+
+  $p.append($label, $audio);
+  remoteAudioControls.appendChild($p);
+
+  // wait for operation complete
+  await $audio.setSinkId(deviceId);
+}
+
 
 // define getUserMedia callback
 function gotDevices(deviceInfos) {
@@ -103,9 +132,13 @@ function gotDevices(deviceInfos) {
       audioInputSelect.appendChild(option);
       console.log('audio input: ', option.text, ` Id: ${deviceInfo.deviceId}`);
     } else if (deviceInfo.kind === 'audiooutput') {
-      option.text = deviceInfo.label || `speaker ${audioOutputSelect.length + 1}`;
+      const labeltext = deviceInfo.label || `speaker ${audioOutputSelect.length + 1}`;
       audioOutputSelect.appendChild(option);
+
       console.log('audio output: ', option.text, ` Id: ${deviceInfo.deviceId}`);
+      if (deviceInfo.deviceId !== 'default' && deviceInfo.deviceId !== 'communications') {
+        createAudioOutControl(labeltext, deviceInfo.deviceId);
+      }
     } else if (deviceInfo.kind === 'videoinput') {
       option.text = deviceInfo.label || `camera ${videoSelect.length + 1}`;
       // skip Camera device
@@ -176,11 +209,11 @@ function attachSinkId(element, sinkId) {
 }
 
 // attach selected audio output to remote audio controls
-function changeAudioDestination() {
-  const audioDestination = audioOutputSelect.value;   // get current audioOutput device Id selected
-  const element = document.querySelector('#remote-audio');
-  attachSinkId(element, audioDestination);
-}
+// function changeAudioDestination() {
+//   const audioDestination = audioOutputSelect.value;   // get current audioOutput device Id selected
+//   const element = document.querySelector('#remote-audio');
+//   attachSinkId(element, audioDestination);
+// }
 
 // get desired UserMedia for send
 // we only use audioSource, no videoSource used
