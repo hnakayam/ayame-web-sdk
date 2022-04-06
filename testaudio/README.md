@@ -26,17 +26,17 @@ https://yarnpkg.com/getting-started/install
 
 3. WebRTC対応のブラウザで以下のいずれかのURLを開きます。
 
-http://localhost:8080/testaudio/sendonly.html
+* http://localhost:8080/testaudio/sendonly.html
 
-http://localhost:8080/testaudio/recvonly.html
+* http://localhost:8080/testaudio/recvonly.html
 
-http://localhost:8080/testaudio/sendrecv.html
+* http://localhost:8080/testaudio/sendrecv.html
 
 
 同じAyameシグナリングサーバーに接続する同じroom IDの2つのブラウザ間でWebRTC通話が可能です。
 
-sendonly → recvonly
-sendrecv ⇔ sendrecv
+* sendonly → recvonly (片方向)
+* sendrecv ⇔ sendrecv (両方向)
 
 の2通りのシナリオで動作確認しています。
 
@@ -81,6 +81,12 @@ main.jsの以下の記述を変更してください。
 const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
 let roomId = 'ayame-test-sdk';
 ```
+
+roomId は 以下のようにURLの引数で変更することもできます。
+
+http://localhost:8080/testaudio/sendonly.html&roomId=myroomid
+
+指定が反映されたことを上部の「ルームID」input要素で確認してください。うまく反映されない場合は 'roomId' が正しくこのように指定されていることを確認ください。 (大文字小文字区別します)
 
 ## オーディオコーデックの変更
 
