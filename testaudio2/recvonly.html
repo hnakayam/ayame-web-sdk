@@ -1,0 +1,106 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <title>Ayame RecvOnly Audio Sample</title>
+    </head>
+    <body>
+      <header class="sticky row">
+        <h4>Ayame RecvOnly Audio Sample</h4>
+      </header>
+      <div>
+        <p>ルームID
+        <input id="roomIdInput" disabled type="text" value=""></input>
+        </p>
+        <p>クライアントID
+        <input id="clientIdInput" disabled type="text" value=""></input>
+        </p>
+        <div style='display:none;'>
+          <p>オーディオ入力
+            <select id="audioSource"></select>
+          </p>
+        </div>
+        <div>
+          <p>オーディオ出力
+            <select id="audioOutput"></select>
+          </p>
+          <p>オーディオ出力デバイスはいつでも変更可能です。</p>
+        </div>
+        <!-- select audio codec in recvonly.html appears not working so disabled. -->
+        <!-- <p>オーディオコーデック
+          <select id="codec">
+              <option selected value="none">Default</option>
+              <option value="opus">Opus</option>
+              <option value="ISAC">iSAC 16K</option>
+              <option value="G722">G722</option>
+              <option value="PCMU">PCMU</option>
+              <option value="PCMA">PCMA</option>
+              <option value="red">RED</option>
+          </select>
+          <select id="codecPreferences" disabled>
+              <option selected value="none">Default</option>
+          </select>
+        </p> -->
+        <button onclick="startConn();">接続</button>
+        <button onclick="conn.disconnect();">切断</button>
+      </div>
+      <div style="float:right;">
+        <audio id="remote-audio" autoplay controls></audio>
+      </div>
+      <script src="../dist/ayame.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
+      <script src="./main.js"></script>
+      <script type="text/javascript">
+        const options = Ayame.defaultOptions;
+        options.video.enabled = false;  // disable video
+        options.audio.direction = 'recvonly';
+        options.clientId = clientId ? clientId : options.clientId;
+
+        // the actual audio.codec will be set just before connect() call
+        if (signalingKey) {
+          options.signalingKey = signalingKey;
+        }
+
+        // start Ayame connection and define message handler
+        const conn = Ayame.connection(signalingUrl, roomId, options, true);
+        conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
+        conn.on('disconnect', (e) => {
+          console.log('<disconnected from peer>');
+          console.log(e);
+        });
+        conn.on('addstream', async (e) => {
+          // remote stream connected
+          //console.log(e.stream);
+          document.querySelector('#remote-audio').srcObject = e.stream;
+        });
+        const startConn = async () => {
+          // // check if browser supports codec preference
+          // if (supportsSetCodecPreferences) {
+
+          //   options.audio.codec = GetAudioCodecSelect();   // update audio.codec option
+          //   conn.options = options;
+
+          //   // "PCMU" or "audio/PCMU 8000" type audio codec string, or "none" if Default selected
+          //   console.log('Preferred audio codec :', options.audio.codec);
+          // }
+
+          // start and wait for peer connection
+          await conn.connect(null);
+
+          // at this point, we are connected
+          console.log('<connected>');
+        };
+        document.querySelector("#roomIdInput").value = roomId;
+        document.querySelector("#clientIdInput").value = options.clientId;
+        // SetupAudioCodecSelect(false);  // initialize audio codecs for receiver (disabled)
+
+        // we only use audio output destination
+        //audioInputSelect.onchange = start;
+        audioOutputSelect.onchange = changeAudioDestination;
+        //videoSelect.onchange = start;
+
+        // call fake getUserMedia in order to get user's permission before actual changing of audio output device
+        navigator.mediaDevices.getUserMedia({audio:true});
+
+      </script>
+  </body>
+</html>

@@ -1,0 +1,109 @@
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <title>Ayame SendOnly Audio Sample</title>
+    </head>
+    <body>
+      <header class="sticky row">
+          <h4>Ayame SendOnly Audio Sample</h4>
+      </header>
+      <div>
+        <p>ルームID
+        <input id="roomIdInput" disabled type="text" value=""></input>
+        </p>
+        <p>クライアントID
+        <input id="clientIdInput" disabled type="text" value=""></input>
+        </p>
+        <div>
+          <p>オーディオ入力
+            <select id="audioSource"></select>
+          </p>
+        </div>
+        <div style='display:none;'>
+          <p>オーディオ出力
+            <select id="audioOutput"></select>
+          </p>
+        </div>
+        <p>オーディオコーデック
+          <select id="codec">
+              <!-- Codec values are matched with how they appear in the SDP.
+              For instance, opus matches opus/48000/2 in Chrome, and ISAC/16000
+              matches 16K iSAC (but not 32K iSAC). -->
+              <option selected value="none">Default</option>
+              <option value="opus">Opus</option>
+              <option value="ISAC">iSAC 16K</option>
+              <option value="G722">G722</option>
+              <option value="PCMU">PCMU</option>
+              <option value="PCMA">PCMA</option>
+              <option value="red">RED</option>
+          </select>
+          <select id="codecPreferences" disabled>
+              <option selected value="none">Default</option>
+          </select>
+        </p>
+        <button onclick="startConn();">接続</button>
+        <button onclick="conn.disconnect();">切断</button>
+      </div>
+      <div style="float:left;">
+        <audio id="local-audio" autoplay controls muted></audio>
+        <!-- <audio id="local-audio" autoplay controls></audio> -->
+        <p>モニター音声を確認するには、ミュートを解除してください</p>
+      </div>
+      <script src="../dist/ayame.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
+      <script src="./main.js"></script>
+      <script type="text/javascript">
+        const options = Ayame.defaultOptions;
+        options.video.enabled = false;  // disable video
+        options.audio.direction = 'sendonly';
+        options.clientId = clientId ? clientId : options.clientId;
+
+        // the actual audio.codec will be set just before connect() call
+        if (signalingKey) {
+          options.signalingKey = signalingKey;
+        }
+
+        // start Ayame connection and define message handler
+        const conn = Ayame.connection(signalingUrl, roomId, options, true);
+        conn.on('disconnect', (e) => {
+          console.log('<disconnected from peer>');
+          console.log(e);
+        });
+        conn.on('addstream', async (e) => {
+          // remote stream connected
+          //console.log(e.stream);
+          //remoteVideo.srcObject = e.stream;
+        });
+        const startConn = async () => {
+          // check if browser supports codec preference
+          if (supportsSetCodecPreferences) {
+
+            options.audio.codec = GetAudioCodecSelect();   // update audio.codec option
+            conn.options = options;
+
+            // "PCMU" or "audio/PCMU 8000" type audio codec string, or "none" if Default selected
+            console.log('Preferred audio codec :', options.audio.codec);
+          }
+
+          // start and wait for peer connection, providing local audio/video stream
+          await conn.connect(mediaStream);
+
+          // at this point, we are connected
+          //document.querySelector('#local-audio').srcObject = mediaStream;
+          console.log('<connected>');
+        };
+        document.querySelector("#roomIdInput").value = roomId;
+        document.querySelector("#clientIdInput").value = options.clientId;
+        SetupAudioCodecSelect(true);  // initialize audio codecs for sender
+
+        // we only use audio input source
+        audioInputSelect.onchange = start;
+        //audioOutputSelect.onchange = changeAudioDestination;
+        //videoSelect.onchange = start;
+
+        // get mediaDevices and start local monitoring
+        start();
+
+      </script>
+  </body>
+</html>
