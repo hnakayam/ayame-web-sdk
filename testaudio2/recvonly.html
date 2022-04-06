@@ -106,6 +106,13 @@
         //audioOutputSelect.onchange = changeAudioDestination;
         //videoSelect.onchange = start;
 
+        // setup "remoteAudioControls" in recvonly.html
+        remoteAudioControls = document.querySelector('#remote-audio-controls');
+
+        // enumerate media devices
+        // this also requests user the permission???
+        navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
+
         // call fake getUserMedia in order to get user's permission before actual changing of audio output device
         navigator.mediaDevices.getUserMedia({audio:true});
 

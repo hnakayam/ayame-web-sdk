@@ -88,7 +88,8 @@ const audioSelectors = [audioInputSelect, audioOutputSelect];
 //audioOutputSelect.disabled = !('sinkId' in HTMLMediaElement.prototype);
 
 // parent element for remote audio (output) controls
-const remoteAudioControls = document.querySelector('#remote-audio-controls');
+//const remoteAudioControls = document.querySelector('#remote-audio-controls');
+const remoteAudioControls = null;
 
 // create HTMLMediaElement ( audio control ) for specified audio sink/output device
 async function createAudioOutControl(labeltext, deviceId) {
@@ -136,7 +137,7 @@ function gotDevices(deviceInfos) {
       audioOutputSelect.appendChild(option);
 
       console.log('audio output: ', option.text, ` Id: ${deviceInfo.deviceId}`);
-      if (deviceInfo.deviceId !== 'default' && deviceInfo.deviceId !== 'communications') {
+      if (remoteAudioControls && deviceInfo.deviceId !== 'default' && deviceInfo.deviceId !== 'communications') {
         createAudioOutControl(labeltext, deviceInfo.deviceId);
       }
     } else if (deviceInfo.kind === 'videoinput') {
@@ -179,10 +180,6 @@ function gotStream(stream) {
 function handleError(error) {
   console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
 }
-
-// enumerate media devices
-// this also requests user the permission???
-navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
 
 // Attach audio output device to audio/video element using device/sink ID.
 function attachSinkId(element, sinkId) {
