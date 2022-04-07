@@ -4,3 +4,13 @@ flow-typed/
 
 # Others
 apidoc/
+
+# TypeScript debug symbols
+*.d.ts
+
+# Temporaly .js files under /src
+/src/*.js
+/src/*/*.js
+
+# yarn files
+yarn.lock
