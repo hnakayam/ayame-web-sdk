@@ -11,7 +11,9 @@ let clientId = null;
 let messages = "";
 let signalingKey = null;
 
-// query string から roomId, clientId を取得するヘルパー
+// query string から roomId, clientId, signalingKey を取得するヘルパー
+// use "?roomId=<room id string>&clientId=<client id string>&signalingKey=<signaling key>" option in URL
+// note: 'roomId' 'clientId' 'signalingKey' are all case sensitive
 function parseQueryString() {
   const qs = window.Qs;
   if (window.location.search.length > 0) {
@@ -88,14 +90,19 @@ const audioSelectors = [audioInputSelect, audioOutputSelect];
 //audioOutputSelect.disabled = !('sinkId' in HTMLMediaElement.prototype);
 
 // parent element for remote audio (output) controls
-//const remoteAudioControls = document.querySelector('#remote-audio-controls');
-const remoteAudioControls = null;
+// used by sendrecv and recvonly (null in sendonly)
+//let remoteAudioControls = document.querySelector('#remote-audio-controls');
+let remoteAudioControls = null;
 
 // create HTMLMediaElement ( audio control ) for specified audio sink/output device
-async function createAudioOutControl(labeltext, deviceId) {
+function createAudioOutControl(labeltext, deviceId) {
   console.log( `audio control created for ${labeltext}, Id: ${deviceId}`);
 
-  const $p = document.createElement('p');
+  // needs 'remoteAudioControls'
+  if (!remoteAudioControls) {
+    console.log('remoteAudioControls need to be initialized.');
+    return;
+  }
 
   const $label = document.createElement('label');
   $label.setAttribute('for', deviceId);
@@ -105,15 +112,29 @@ async function createAudioOutControl(labeltext, deviceId) {
   $audio.setAttribute('id', deviceId);
   $audio.setAttribute('autoplay', true);
   $audio.setAttribute('controls', true);
+
   // 'srcObject' will be set when 'addstream' message came in
 
+  const $p = document.createElement('p');
   $p.append($label, $audio);
   remoteAudioControls.appendChild($p);
 
-  // wait for operation complete
-  await $audio.setSinkId(deviceId);
+  // setSinkId() requires some time after <audio> element created
+  // so we don't call setSinkId() here but call when WebRTC stream comes in
+  // $audio.setSinkId(deviceId)
+  //   .then(() => {
+  //     console.log(`Success, audio output device connected to: ${deviceId}`);
+  //   })
+  //   .catch(error => {
+  //     let errorMessage = error;
+  //     if (error.name === 'SecurityError') {
+  //       errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`;
+  //     }
+  //     console.error(errorMessage);
+  //     // Jump back to first output device in the list as it's the default.
+  //     //audioOutputSelect.selectedIndex = 0;
+  //   });
 }
-
 
 // define getUserMedia callback
 function gotDevices(deviceInfos) {

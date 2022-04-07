@@ -72,13 +72,32 @@
           // e: RTCTrackEvent class object, e.stream: MediaStream class object
           console.log('<stream connected> stream = ', e.stream);
           
-          // get all the 'audio' element snapshot NodeList inside container
-          const audioOutputs = document.querySelectorAll('audio');
-          console.log(audioOutputs.length, ' audio outputs.');
+          // get all the 'audio' element snapshot NodeList inside audio control container
+          if (remoteAudioControls) {
+            const audioOutputs = remoteAudioControls.querySelectorAll('audio');
+            console.log(audioOutputs.length, ' audio outputs.');
 
-          audioOutputs.forEach(function(control) {
-            control.srcObject = e.stream.clone();            
-          });
+            audioOutputs.forEach(function(control) {
+              // set WebRTC stream
+              control.srcObject = e.stream.clone();
+
+              // setSinkId() here. this will take some time
+              const deviceId = control.getAttribute('id');
+              control.setSinkId(deviceId)
+                .then(() => {
+                  console.log(`Success, audio output device connected to: ${deviceId}`);
+                })
+                .catch(error => {
+                  let errorMessage = error;
+                  if (error.name === 'SecurityError') {
+                    errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`;
+                  }
+                  console.error(errorMessage);
+                  // Jump back to first output device in the list as it's the default.
+                  //audioOutputSelect.selectedIndex = 0;
+                });
+            });
+          }
         });
         const startConn = async () => {
           // // check if browser supports codec preference
@@ -97,11 +116,13 @@
           // at this point, we are connected
           console.log('<connected>');
         };
+
+        // set input field but readonly
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
         // SetupAudioCodecSelect(false);  // initialize audio codecs for receiver (disabled)
 
-        // we don't use device selectors
+        // we don't use device selectors in recvonly.html
         //audioInputSelect.onchange = start;
         //audioOutputSelect.onchange = changeAudioDestination;
         //videoSelect.onchange = start;
@@ -109,12 +130,12 @@
         // setup "remoteAudioControls" in recvonly.html
         remoteAudioControls = document.querySelector('#remote-audio-controls');
 
+        // call fake getUserMedia in order to get user's permission before actual changing of audio output device
+        navigator.mediaDevices.getUserMedia({audio:true});
+
         // enumerate media devices
         // this also requests user the permission???
         navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
-
-        // call fake getUserMedia in order to get user's permission before actual changing of audio output device
-        navigator.mediaDevices.getUserMedia({audio:true});
 
       </script>
   </body>
