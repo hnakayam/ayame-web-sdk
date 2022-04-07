@@ -84,7 +84,7 @@ let roomId = 'ayame-test-sdk';
 
 roomId は 以下のようにURLの引数で変更することもできます。
 
-http://localhost:8080/testaudio/sendonly.html&roomId=myroomid
+http://localhost:8080/testaudio/sendonly.html?roomId=myroomid
 
 指定が反映されたことを上部の「ルームID」input要素で確認してください。うまく反映されない場合は 'roomId' が正しくこのように指定されていることを確認ください。 (大文字小文字区別します)
 
