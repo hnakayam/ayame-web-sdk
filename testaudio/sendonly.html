@@ -66,8 +66,8 @@
         // start Ayame connection and define message handler
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
         conn.on('disconnect', (e) => {
-          console.log('<disconnected from peer>');
-          console.log(e);
+          // e is JSON object with 'reason' property
+          console.log(`<disconnected from peer> : ${e.reason}`);
         });
         conn.on('addstream', async (e) => {
           // remote stream connected
