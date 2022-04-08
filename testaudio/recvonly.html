@@ -64,8 +64,12 @@
         const conn = Ayame.connection(signalingUrl, roomId, options, true);
         conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
         conn.on('disconnect', (e) => {
-          console.log('<disconnected from peer>');
-          console.log(e);
+          // e is JSON object with 'reason' property
+          console.log(`<disconnected from peer> : ${e.reason}`);
+
+          // clear HTMLMediaElement.srcObject once played and before changing sinkId
+          // see https://bugs.chromium.org/p/chromium/issues/detail?id=644622 for details
+          document.querySelector('#remote-audio').srcObject = null;
         });
         conn.on('addstream', async (e) => {
           // remote stream connected
