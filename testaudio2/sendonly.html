@@ -94,7 +94,7 @@
         document.querySelector("#clientIdInput").value = options.clientId;
         SetupAudioCodecSelect(true);  // initialize audio codecs for sender
 
-        // we only use audio input source
+        // we don't use selector in this demo
         //audioInputSelect.onchange = start;
         //audioOutputSelect.onchange = changeAudioDestination;
         //videoSelect.onchange = start;
@@ -102,15 +102,12 @@
         // setup "localAudioControls" in sendonly.html
         localAudioControls = document.querySelector('#local-audio-controls');
 
-        // call fake getUserMedia in order to get user's permission before actual changing of audio input device
+        // call fake getUserMedia in order to get user's permission before actual access of audio input device
         navigator.mediaDevices.getUserMedia({audio:true});
 
-        // enumerate media devices
+        // enumerate media devices and start audio input monitor
         // this also requests user the permission???
         navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
-
-        // in this demo we cannot monitor audio input
-        //start();
 
       </script>
     </body>
