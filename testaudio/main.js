@@ -11,7 +11,9 @@ let clientId = null;
 let messages = "";
 let signalingKey = null;
 
-// query string から roomId, clientId を取得するヘルパー
+// query string から roomId, clientId, signalingKey を取得するヘルパー
+// use "?roomId=<room id string>&clientId=<client id string>&signalingKey=<signaling key>" option in URL
+// note: 'roomId' 'clientId' 'signalingKey' are all case sensitive
 function parseQueryString() {
   const qs = window.Qs;
   if (window.location.search.length > 0) {
