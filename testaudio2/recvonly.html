@@ -5,7 +5,7 @@
     </head>
     <body>
       <header class="sticky row">
-        <h4>Ayame RecvOnly Audio Sample</h4>
+        <h4>Ayame RecvOnly Duplicate Audio Output Sample</h4>
       </header>
       <div>
         <p>ルームID
@@ -67,9 +67,18 @@
           // e is JSON object with 'reason' property
           console.log(`<disconnected from peer> : ${e.reason}`);
 
-          // clear HTMLMediaElement.srcObject once played and before changing sinkId
-          // see https://bugs.chromium.org/p/chromium/issues/detail?id=644622 for details
-          document.querySelector('#remote-audio').srcObject = null;
+          // get all the 'audio' element snapshot NodeList inside audio control container
+          if (remoteAudioControls) {
+            // clear HTMLMediaElement.srcObject once played and before changing sinkId
+            // see https://bugs.chromium.org/p/chromium/issues/detail?id=644622 for details
+            const audioOutputs = remoteAudioControls.querySelectorAll('audio');
+            console.log(`${audioOutputs.length} audio outputs.`);
+
+            audioOutputs.forEach(function(control) {
+                // clear WebRTC stream
+                control.srcObject = null;
+            });
+          }
         });
         conn.on('addstream', async (e) => {
           // remote stream connected
@@ -79,7 +88,7 @@
           // get all the 'audio' element snapshot NodeList inside audio control container
           if (remoteAudioControls) {
             const audioOutputs = remoteAudioControls.querySelectorAll('audio');
-            console.log(audioOutputs.length, ' audio outputs.');
+            console.log(`${audioOutputs.length} audio outputs.`);
 
             audioOutputs.forEach(function(control) {
               // set WebRTC stream
