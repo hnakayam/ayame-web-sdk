@@ -12,6 +12,7 @@ let messages = "";
 let signalingKey = null;
 
 // query string から roomId, clientId, signalingKey を取得するヘルパー
+// this will use "Querystring Parse and Stringify Library" qs.min.js
 // use "?roomId=<room id string>&clientId=<client id string>&signalingKey=<signaling key>" option in URL
 // note: 'roomId' 'clientId' 'signalingKey' are all case sensitive
 function parseQueryString() {
@@ -89,9 +90,62 @@ const audioSelectors = [audioInputSelect, audioOutputSelect];
 // audioOutputSelect is always disabled
 //audioOutputSelect.disabled = !('sinkId' in HTMLMediaElement.prototype);
 
+// parent element for local audio (input) controls
+// used by sendrecv and sendonly (null in recvonly)
+let localAudioControls = null;
+
+// create HTMLMediaElement ( audio control ) for specified audio input device
+async function createAudioInControl(labeltext, deviceId) {
+  console.log( `audio control created for ${labeltext}, Id: ${deviceId}`);
+
+  // needs 'localAudioControls'
+  if (!localAudioControls) {
+    console.log('localAudioControls need to be initialized.');
+    return;
+  }
+
+  const $label = document.createElement('label');
+  $label.setAttribute('for', deviceId);
+  $label.innerHTML = labeltext;
+
+  const $audio = document.createElement('audio');
+  $audio.id = deviceId;
+  $audio.autoplay = true;
+  $audio.controls = true;
+  $audio.muted = true;
+
+  // 'srcObject' will be set when getUserMedia ready
+
+  const $p = document.createElement('p');
+  $p.append($label, $audio);
+  localAudioControls.appendChild($p);
+
+  // connect MediaDevices.getUserMedia
+  const constraints = {
+    audio: {deviceId: {exact: deviceId}},
+    video: false
+  };
+
+  // wait for stream ready and assign
+  const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(handleError);
+
+  if (stream) {
+    // successfully got stream
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length > 0) {
+      console.log(`Using Audio input device: ${audioTracks[0].label}`);   // echo audio input device
+    }
+
+    $audio.srcObject = stream;
+  }
+  else {
+    // something wrong happened
+    console.log('getUserMedia failed.');
+  }
+}
+
 // parent element for remote audio (output) controls
 // used by sendrecv and recvonly (null in sendonly)
-//let remoteAudioControls = document.querySelector('#remote-audio-controls');
 let remoteAudioControls = null;
 
 // create HTMLMediaElement ( audio control ) for specified audio sink/output device
@@ -109,9 +163,10 @@ function createAudioOutControl(labeltext, deviceId) {
   $label.innerHTML = labeltext;
 
   const $audio = document.createElement('audio');
-  $audio.setAttribute('id', deviceId);
-  $audio.setAttribute('autoplay', true);
-  $audio.setAttribute('controls', true);
+  $audio.id = deviceId;
+  $audio.autoplay = true;
+  $audio.controls = true;
+  //$audio.muted = true;
 
   // 'srcObject' will be set when 'addstream' message came in
 
@@ -153,6 +208,9 @@ function gotDevices(deviceInfos) {
       option.text = deviceInfo.label || `microphone ${audioInputSelect.length + 1}`;
       audioInputSelect.appendChild(option);
       console.log('audio input: ', option.text, ` Id: ${deviceInfo.deviceId}`);
+      if (localAudioControls && deviceInfo.deviceId !== 'default' && deviceInfo.deviceId !== 'communications') {
+        createAudioInControl(option.text, deviceInfo.deviceId);
+      }
     } else if (deviceInfo.kind === 'audiooutput') {
       option.text = deviceInfo.label || `speaker ${audioOutputSelect.length + 1}`;
       audioOutputSelect.appendChild(option);

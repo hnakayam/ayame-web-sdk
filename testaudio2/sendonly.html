@@ -1,11 +1,11 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8">
-        <title>Ayame SendOnly Audio Sample</title>
+        <title>Ayame SendOnly Audio Input MIX Sample</title>
     </head>
     <body>
       <header class="sticky row">
-          <h4>Ayame SendOnly Audio Sample</h4>
+          <h4>Ayame SendOnly Audio Input MIX Sample</h4>
       </header>
       <div>
         <p>ルームID
@@ -14,7 +14,7 @@
         <p>クライアントID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
-        <div>
+        <div style='display:none;'>
           <p>オーディオ入力
             <select id="audioSource"></select>
           </p>
@@ -44,10 +44,8 @@
         <button onclick="startConn();">接続</button>
         <button onclick="conn.disconnect();">切断</button>
       </div>
-      <div style="float:left;">
-        <audio id="local-audio" autoplay controls muted></audio>
-        <!-- <audio id="local-audio" autoplay controls></audio> -->
-        <p>モニター音声を確認するには、ミュートを解除してください</p>
+      <div id="local-audio-controls" style="float:left;">
+        <!-- <audio id="local-audio" autoplay controls muted></audio> -->
       </div>
       <script src="../dist/ayame.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
@@ -97,13 +95,23 @@
         SetupAudioCodecSelect(true);  // initialize audio codecs for sender
 
         // we only use audio input source
-        audioInputSelect.onchange = start;
+        //audioInputSelect.onchange = start;
         //audioOutputSelect.onchange = changeAudioDestination;
         //videoSelect.onchange = start;
 
-        // get mediaDevices and start local monitoring
-        start();
+        // setup "localAudioControls" in sendonly.html
+        localAudioControls = document.querySelector('#local-audio-controls');
+
+        // call fake getUserMedia in order to get user's permission before actual changing of audio input device
+        navigator.mediaDevices.getUserMedia({audio:true});
+
+        // enumerate media devices
+        // this also requests user the permission???
+        navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
+
+        // in this demo we cannot monitor audio input
+        //start();
 
       </script>
-  </body>
+    </body>
 </html>
