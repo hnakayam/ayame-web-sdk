@@ -49,6 +49,7 @@
       </div>
       <script src="../dist/ayame.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
+      <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
       <script src="./main.js"></script>
       <script type="text/javascript">
         const options = Ayame.defaultOptions;
@@ -66,9 +67,13 @@
         conn.on('disconnect', (e) => {
           console.log('<disconnected from peer>');
           console.log(e);
+
+          // stop Web Audio
+          WebAudioStop();
+
         });
         conn.on('addstream', async (e) => {
-          // remote stream connected
+          // remote stream connected (used in stream receive)
           //console.log(e.stream);
           //remoteVideo.srcObject = e.stream;
         });
@@ -84,11 +89,16 @@
           }
 
           // start and wait for peer connection, providing local audio/video stream
-          await conn.connect(mediaStream);
+          mediaStream = WebAudioStart();
+          if (mediaStream) {
+            await conn.connect(mediaStream);
 
-          // at this point, we are connected
-          //document.querySelector('#local-audio').srcObject = mediaStream;
-          console.log('<connected>');
+            // at this point, we are connected
+            console.log('<connected>');
+          }
+          else {
+            console.log('failed to start WebAudio.');
+          }
         };
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;

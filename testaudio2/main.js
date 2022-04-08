@@ -136,6 +136,7 @@ async function createAudioInControl(labeltext, deviceId) {
       console.log(`Using Audio input device: ${audioTracks[0].label}`);   // echo audio input device
     }
 
+    // MediaStream connect to the audio control
     $audio.srcObject = stream;
   }
   else {
@@ -307,4 +308,114 @@ function start() {
     video: false
   };
   navigator.mediaDevices.getUserMedia(constraints).then(gotStream).then(gotDevices).catch(handleError);
+}
+
+// global AudioContext for Web Audio API
+let audioCtx = null;
+let sourceMix = null;
+let streamOut = null;
+
+// Array of MediaStreamSource
+let sourceNodes = [];
+
+// Array of GainNode each connected to MediaStreamSource
+let sourceGains = [];
+
+// initialize globals, must be called after user's first interraction (button press etc...)
+// assumes audio control already created
+// returns MediaStream or null if failed
+function WebAudioStart() {
+
+  // needs 'localAudioControls'
+  if (!localAudioControls) {
+    console.log('localAudioControls need to be initialized.');
+    return null;
+  }
+
+  // check if any of <audio> control generated
+  const audioInputs = localAudioControls.querySelectorAll('audio');
+  if (audioInputs.length == 0) {
+    console.log('no audio control found within localAudioControls.');
+    return null;
+  }
+  else {
+    console.log(`${audioInputs.length} audio inputs.`);
+  }
+
+  // we have at least one <audio> control
+
+  // create AudioContext and Initialize global controls
+  if (!audioCtx) {
+    // initialize AudioContext etc.
+    audioCtx = new AudioContext();
+
+    // create GainNode for audio input mix and connect to final output
+    sourceMix = audioCtx.createGain();
+    sourceMix.gain.value = 1.0;
+
+    // enable below to monitor mixed sound
+    //sourceMix.connect(audioCtx.destination);  // connect to default audio out
+
+    // create MediaStream compatible destination object and connect
+    streamOut = audioCtx.createMediaStreamDestination();
+    sourceMix.connect(streamOut);
+
+    // make Arrays empty
+    sourceNodes = [];
+    sourceGains = [];
+    
+    // get gain value for all inputs
+    //const vol = 1.0 / audioInputs.length;
+    const vol = 1.0;
+
+    audioInputs.forEach(function(control) {
+
+      // get MediaStream object from <audio> control
+      const stream = control.srcObject;
+
+      // create source node and register
+      const node = audioCtx.createMediaStreamSource(stream);
+      sourceNodes.push(node);
+
+      // create gain node, set initial gain, and register
+      const gain = audioCtx.createGain();
+      gain.gain.value = vol;
+      sourceGains.push(gain);
+
+      // connect to sourceMix
+      node.connect(gain);
+      gain.connect(sourceMix);
+
+    });
+
+  }
+
+  // in case of MediaStreamSource there's no need to start()
+  // sourceNodes.forEach(function(source) {
+  //   source.start(0);
+  // });
+
+  console.log('Wave API start.');
+ 
+  // streamOut is "MediaStreamAudioDestinationNode" object
+  // convert to MediaStream object
+  return streamOut.stream;
+}
+
+// stop Wave Audio playback and free resources
+function WebAudioStop() {
+  if (audioCtx) {
+
+    audioCtx.close().then(function() {
+
+      audioCtx = null;
+      sourceMix = null;
+      streamOut = null;
+
+      sourceNodes = [];
+      sourceGains = [];
+        
+      console.log('Wave API stop.');
+    });
+  }
 }
