@@ -154,12 +154,11 @@ function gotDevices(deviceInfos) {
       audioInputSelect.appendChild(option);
       console.log('audio input: ', option.text, ` Id: ${deviceInfo.deviceId}`);
     } else if (deviceInfo.kind === 'audiooutput') {
-      const labeltext = deviceInfo.label || `speaker ${audioOutputSelect.length + 1}`;
+      option.text = deviceInfo.label || `speaker ${audioOutputSelect.length + 1}`;
       audioOutputSelect.appendChild(option);
-
       console.log('audio output: ', option.text, ` Id: ${deviceInfo.deviceId}`);
       if (remoteAudioControls && deviceInfo.deviceId !== 'default' && deviceInfo.deviceId !== 'communications') {
-        createAudioOutControl(labeltext, deviceInfo.deviceId);
+        createAudioOutControl(option.text, deviceInfo.deviceId);
       }
     } else if (deviceInfo.kind === 'videoinput') {
       option.text = deviceInfo.label || `camera ${videoSelect.length + 1}`;
