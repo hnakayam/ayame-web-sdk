@@ -1,11 +1,11 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8">
-        <title>Ayame Send/Recv Audio Test</title>
+        <title>Ayame Send/Recv Audio Input MIX Sample</title>
     </head>
     <body>
       <header class="sticky row">
-        <h4>Ayame Send/Recv Audio Test</h4>
+        <h4>Ayame Send/Recv Audio Input MIX Sample</h4>
       </header>
       <div>
         <p>ルームID
@@ -14,7 +14,7 @@
         <p>クライアントID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
-        <div>
+        <div style='display:none;'>
           <p>オーディオ入力
             <select id="audioSource"></select>
           </p>
@@ -45,18 +45,17 @@
         <button onclick="startConn();">接続</button>
         <button onclick="conn && conn.disconnect();">切断</button>
       </div>
-      <div style="float:left;">
+      <div id="local-audio-controls" style="float:left;">
         <div class="label">Local audio:</div>
-        <audio id="local-audio" autoplay controls muted></audio>
-        <!-- <audio id="local-audio" autoplay controls></audio> -->
-        <p>モニター音声を確認するには、ミュートを解除してください</p>
+        <!-- <audio id="local-audio" autoplay controls muted></audio> -->
       </div>
-      <div style="float:left; margin-left: 20px;">
+      <div style="float:right; margin-left: 20px;">
         <div class="label">Remote audio:</div>
         <audio id="remote-audio" autoplay controls></audio>
       </div>
       <script src="../dist/ayame.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
+      <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
       <script src="./main.js"></script>
       <script type="text/javascript">
         const options = Ayame.defaultOptions;
@@ -78,10 +77,17 @@
         conn.on('disconnect', (e) => {
           console.log('<disconnected from peer>');
           console.log(e);
+
+          // stop Web Audio
+          WebAudioStop();
+
+          // clear HTMLMediaElement.srcObject once played and before changing sinkId
+          // see https://bugs.chromium.org/p/chromium/issues/detail?id=644622 for details
+          document.querySelector('#remote-audio').srcObject = null;
         });
         conn.on('addstream', async (e) => {
           // remote stream connected
-          console.log(e.stream);
+          //console.log(e.stream);
           document.querySelector('#remote-audio').srcObject = e.stream;
         });
         const startConn = async () => {
@@ -95,25 +101,37 @@
             console.log('Preferred audio codec :', options.audio.codec);
           }
         	
-          // start and wait for peer connection
+          // start and wait for peer connection, providing local audio/video stream
+          mediaStream = WebAudioStart();
+          if (mediaStream) {
           const authnMetadata = {hoge: "fuga"};
           await conn.connect(mediaStream,  {authnMetadata});
           
           // at this point, we are connected
-          //document.querySelector('#local-audio').srcObject = mediaStream;
           console.log('<connected>');
+          }
+          else {
+            console.log('failed to start WebAudio.');
+          }
         };
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
         SetupAudioCodecSelect(true);  // initialize audio codecs for sender
 
-        // we use both audio input and audio output
-        audioInputSelect.onchange = start;
+        // we only use audio output destination
+        //audioInputSelect.onchange = start;
         audioOutputSelect.onchange = changeAudioDestination;
         //videoSelect.onchange = start;
 
-        // get mediaDevices and start local monitoring
-        start();
+        // setup "localAudioControls" in sendonly.html
+        localAudioControls = document.querySelector('#local-audio-controls');
+
+        // call fake getUserMedia in order to get user's permission before actual access of audio input device
+        navigator.mediaDevices.getUserMedia({audio:true});
+
+        // enumerate media devices and start audio input monitor
+        // this also requests user the permission???
+        navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
 
       </script>
   </body>
