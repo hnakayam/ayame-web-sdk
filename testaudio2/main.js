@@ -285,11 +285,11 @@ function attachSinkId(element, sinkId) {
 }
 
 // attach selected audio output to remote audio controls
-// function changeAudioDestination() {
-//   const audioDestination = audioOutputSelect.value;   // get current audioOutput device Id selected
-//   const element = document.querySelector('#remote-audio');
-//   attachSinkId(element, audioDestination);
-// }
+function changeAudioDestination() {
+  const audioDestination = audioOutputSelect.value;   // get current audioOutput device Id selected
+  const element = document.querySelector('#remote-audio');
+  attachSinkId(element, audioDestination);
+}
 
 // get desired UserMedia for send
 // we only use audioSource, no videoSource used
