@@ -1,6 +1,6 @@
 // ayame signaling server parameters
 const signalingUrl = 'wss://ayame-labo.shiguredo.jp/signaling';
-let roomId = 'release2.1-test-room1';
+let roomId = 'release3-test-room1';
 
 // select 'audio/PCMU' or other MIME type for audio codec initial selection (if any)
 const codecMimeTypeInitial = 'audio/PCMU'
